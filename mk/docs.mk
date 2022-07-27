@@ -20,7 +20,7 @@ docs/install/manpages: ## Generate CLI reference in man(1) format
 	@DESTDIR=$(DESTDIR) FORMAT=man $(GO_RUN) ./tools/docs/generate.go
 
 .PHONY: docs/install/resources
-docs/install/resources: DESTDIR ?= docs/resources
+docs/install/resources: DESTDIR ?= docs/generated/resources
 docs/install/resources: ## Generate Mesh API reference
 	mkdir -p $(DESTDIR) && cd api/ && $(PROTOC) \
 		--kumadoc_out=../$(DESTDIR) \

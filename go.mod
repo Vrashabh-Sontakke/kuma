@@ -132,6 +132,7 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/jpillora/backoff v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/lyft/protoc-gen-star v0.6.0 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -198,6 +199,8 @@ require (
 )
 
 replace github.com/prometheus/prometheus => ./vendored/github.com/prometheus/prometheus
+
+replace github.com/kumahq/protoc-gen-kumadoc => github.com/michaelbeaumont/protoc-gen-kumadoc v0.0.0-20220727125912-5e94108c7d6c
 
 replace sigs.k8s.io/gateway-api => github.com/kumahq/gateway-api v0.0.0-20220714082056-fbb05ce01577
 
