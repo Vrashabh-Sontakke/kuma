@@ -1,6 +1,10 @@
 package bootstrap
 
-import "time"
+import (
+	"time"
+
+	mesh_proto "github.com/kumahq/kuma/api/mesh/v1alpha1"
+)
 
 type KumaDpBootstrap struct {
 	AggregateMetricsConfig []AggregateMetricsConfig
@@ -37,6 +41,7 @@ type configParameters struct {
 	DynamicMetadata       map[string]string
 	DNSPort               uint32
 	EmptyDNSPort          uint32
-	ProxyType             string
+	ProxyType             mesh_proto.ProxyType
 	Features              []string
+	IsGatewayDataplane    bool
 }

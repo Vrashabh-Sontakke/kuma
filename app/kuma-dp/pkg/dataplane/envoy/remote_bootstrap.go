@@ -10,8 +10,10 @@ import (
 	"net/http"
 	net_url "net/url"
 	"os"
+	"strconv"
 	"strings"
 
+	"github.com/containerd/cgroups"
 	envoy_bootstrap_v3 "github.com/envoyproxy/go-control-plane/envoy/config/bootstrap/v3"
 	"github.com/pkg/errors"
 	"github.com/sethvargo/go-retry"
@@ -107,6 +109,55 @@ func (b *remoteBootstrap) Generate(ctx context.Context, url string, cfg kuma_dp.
 		return nil, nil, err
 	}
 	return envoyBootstrap, &bootstrap.KumaSidecarConfiguration, nil
+}
+
+type IntOrString struct {
+	Type   string
+	Int    int
+	String string
+}
+
+func maybeReadAsBytes(path string) *IntOrString {
+	raw, err := os.ReadFile("/sys/fs/cgroup/memory.max")
+	if err == nil {
+		bytes, err := strconv.Atoi(string(raw))
+		if err != nil {
+			return &IntOrString{
+				Type:   "string",
+				String: string(raw),
+			}
+		}
+		return &IntOrString{
+			Type: "int",
+			Int:  bytes,
+		}
+	}
+	return nil
+}
+
+func (b *remoteBootstrap) resourceMetadata() (map[string]string, error) {
+	var maxMemory int
+
+	switch cgroups.Mode() {
+	case cgroups.Legacy:
+		res := maybeReadAsBytes("/sys/fs/cgroup/memory.limit_in_bytes")
+		if res != nil && res.Type == "int" {
+			maxMemory = res.Int
+		}
+	case cgroups.Hybrid, cgroups.Unified:
+		res := maybeReadAsBytes("/sys/fs/cgroup/memory.max")
+		if res != nil && res.Type == "int" {
+			maxMemory = res.Int
+		}
+	}
+
+	resources := map[string]string{}
+
+	if maxMemory != 0 {
+		resources["max_heap_size_bytes"] = strconv.Itoa(int(0.90 * float64(maxMemory)))
+	}
+
+	return resources, nil
 }
 
 func (b *remoteBootstrap) requestForBootstrap(ctx context.Context, url *net_url.URL, cfg kuma_dp.Config, params BootstrapParams) ([]byte, error) {

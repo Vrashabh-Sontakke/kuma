@@ -96,11 +96,11 @@ func (b *bootstrapGenerator) Generate(ctx context.Context, request types.Bootstr
 		DynamicMetadata:       request.DynamicMetadata,
 		DNSPort:               request.DNSPort,
 		EmptyDNSPort:          request.EmptyDNSPort,
-		ProxyType:             request.ProxyType,
+		ProxyType:             mesh_proto.ProxyType(request.ProxyType),
 		Features:              request.Features,
 	}
 	if params.ProxyType == "" {
-		params.ProxyType = string(mesh_proto.DataplaneProxyType)
+		params.ProxyType = mesh_proto.DataplaneProxyType
 	}
 
 	setAdminPort := func(adminPortFromResource uint32) {
@@ -111,7 +111,7 @@ func (b *bootstrapGenerator) Generate(ctx context.Context, request types.Bootstr
 		}
 	}
 
-	switch mesh_proto.ProxyType(params.ProxyType) {
+	switch params.ProxyType {
 	case mesh_proto.IngressProxyType:
 		zoneIngress, err := b.zoneIngressFor(ctx, request, proxyId)
 		if err != nil {
@@ -132,6 +132,10 @@ func (b *bootstrapGenerator) Generate(ctx context.Context, request types.Bootstr
 		dataplane, err := b.dataplaneFor(ctx, request, proxyId)
 		if err != nil {
 			return nil, kumaDpBootstrap, err
+		}
+
+		if dataplane.Spec.IsBuiltinGateway() {
+			params.IsGatewayDataplane = true
 		}
 
 		params.Service = dataplane.Spec.GetIdentifyingService()
